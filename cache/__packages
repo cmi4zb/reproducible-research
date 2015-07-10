@@ -1,0 +1,9 @@
+base
+rpart
+lattice
+RevoScaleR
+RevoMods
+RevoUtils
+RevoUtilsMath
+knitr
+ggplot2
