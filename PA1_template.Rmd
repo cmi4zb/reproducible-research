@@ -1,0 +1,158 @@
+---
+title: 'Reproducible Reserach: Peer Assessment 1'
+author: "Caroline Iurillo"
+date: "Friday, July 10, 2015"
+output: html_document
+---
+
+This is an R Markdown document for peer assessment 1 for reprodicible research.  
+
+
+Loading and preprocessing the data
+
+```{r}
+activity<-read.csv(file="activity.csv",  header=TRUE,sep= ",", skipNul=TRUE)
+
+```
+
+packages need
+```{r}
+
+library(ggplot2)
+```
+
+
+graph of total number of steps taken per day
+
+```{r}
+ggplot(steps.day, aes(x = steps)) + 
+  geom_histogram(fill = "blue", binwidth = 1000) + 
+  labs(title="Frequency Steps Taken per Day", 
+       x = "Number of Steps per Day", y = "Number of times ") + theme_bw()
+
+```
+
+mean and median of the total number of steps taken per day
+mean:10766.19
+median:10765
+
+```{r}
+mean(steps.day$steps)
+median(steps.day$steps)
+
+```
+average daily avtivity patttern
+
+plot of the 5 minute intervals averaged across all days
+
+```{r}
+steps.interval.average<-aggregate(steps ~ interval, mean, data = activity, na.rm=TRUE)
+
+barplot(steps.interval.average$steps, names.arg = steps.interval.average$interval, main="average steps by 5 min interval", 
+        xlab="5 minute interval", ylab="steps")
+```
+
+5-minute interval of average across all the datas contained max number of steps
+835
+
+```{r}
+steps.interval.average[which.max(steps.interval.average[,2]),1]
+
+```
+
+imputing missing values
+current # of missing values you can see from summary: 2304
+```{r}
+summary(activity)
+```
+
+to fill in these missing values you can use the average interval value
+```{r}
+
+na_fill <- function(data, value) {
+  na_index <- which(is.na(data$steps))
+  na_replace <- unlist(lapply(na_index, FUN=function(idx){
+    interval = data[idx,]$interval
+    value[value$interval == interval,]$steps
+  }))
+  fill_steps <- data$steps
+  fill_steps[na_index] <- na_replace
+  fill_steps
+}
+
+newActivity <- data.frame(  steps = na_fill(activity, steps.interval.average),  
+  date = activity$date,  interval = activity$interval)
+
+
+summary(newActivity)
+
+new.steps.day<-aggregate(steps ~ date, sum, data = newActivity, na.rm=TRUE)
+```
+
+
+histogram of the total number of steps (with imputed values)
+```{r}
+ggplot(new.steps.day, aes(x = steps)) + 
+  geom_histogram(fill = "blue", binwidth = 1000) + 
+  labs(title="Frequency Steps Taken per Day (with imputed values)", 
+       x = "Number of Steps per Day", y = "Number of times") + theme_bw()
+
+```
+
+new mean and median values
+new mean : 10766.19
+new median: 10766.19
+old mean: 10766.19
+old median: 10765
+The mean was not changed by the imputation.  However, the median was.  The median steps increased when the data was imputed.
+```{r}
+mean(new.steps.day$steps)
+median(new.steps.day$steps)
+```
+
+Difference in Activity: weekday vs. weekend
+make new variable
+
+```{r}
+
+
+newActivity$interval <- as.factor(newActivity$interval)
+newActivity$date <- as.Date(newActivity$date, format = "%Y-%m-%d")
+
+weekdays_steps <- function(data) {
+  weekdays_steps <- aggregate(data$steps, by=list(interval = data$interval),
+                              FUN=mean, na.rm=T)
+  # convert to integers for plotting
+  weekdays_steps$interval <-  as.integer(levels(weekdays_steps$interval)[weekdays_steps$interval])
+  colnames(weekdays_steps) <- c("interval", "steps")
+  weekdays_steps
+}
+
+data_by_weekdays <- function(data) {
+  data$weekday <-  as.factor(weekdays(data$date)) # weekdays
+  weekend_data <- subset(data, weekday %in% c("Saturday","Sunday"))
+  weekday_data <- subset(data, !weekday %in% c("Saturday","Sunday"))
+  
+  weekend_steps <- weekdays_steps(weekend_data)
+  weekday_steps <- weekdays_steps(weekday_data)
+  
+  weekend_steps$dayofweek <- rep("weekend", nrow(weekend_steps))
+  weekday_steps$dayofweek <- rep("weekday", nrow(weekday_steps))
+  
+  data_by_weekdays <- rbind(weekend_steps, weekday_steps)
+  data_by_weekdays$dayofweek <- as.factor(data_by_weekdays$dayofweek)
+  data_by_weekdays
+}
+
+data_weekdays <- data_by_weekdays(newActivity)
+```
+
+
+plot difference
+```{r}
+ggplot(data_weekdays, aes(x=interval, y=steps)) + 
+  geom_line(color="violet") + 
+  facet_wrap(~ dayofweek, nrow=2, ncol=1) +
+  labs(x="Interval", y="Number of steps") +
+  theme_bw()
+```
