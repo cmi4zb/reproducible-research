@@ -68,6 +68,9 @@ img {
 
 
 <p>This is an R Markdown document for peer assessment 1 for reprodicible research.</p>
+<pre class="r"><code>require(knitr)</code></pre>
+<pre><code>## Loading required package: knitr</code></pre>
+<pre class="r"><code>opts_chunk$set(echo = TRUE, cache = TRUE, cache.path = &quot;cache/&quot;, fig.path = &quot;figure/&quot;)</code></pre>
 <p>Loading and preprocessing the data</p>
 <pre class="r"><code>activity&lt;-read.csv(file=&quot;activity.csv&quot;,  header=TRUE,sep= &quot;,&quot;, skipNul=TRUE)</code></pre>
 <p>packages need</p>

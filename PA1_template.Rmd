@@ -4,9 +4,12 @@ author: "Caroline Iurillo"
 date: "Friday, July 10, 2015"
 output: html_document
 ---
-
 This is an R Markdown document for peer assessment 1 for reprodicible research.  
+```{r setoptions, echo=TRUE}
+require(knitr)
+opts_chunk$set(echo = TRUE, cache = TRUE, cache.path = "cache/", fig.path = "figure/")
 
+```
 
 Loading and preprocessing the data
 
